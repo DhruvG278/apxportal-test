@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Add fav icon
 export const metadata: Metadata = {
   title: "AFX Portal",
   description: "AFX Portal dashboard and management system",
