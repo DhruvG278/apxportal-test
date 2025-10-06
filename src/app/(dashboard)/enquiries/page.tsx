@@ -32,19 +32,20 @@ export default function EnquiriesPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
 
-  // Filters
-  const [filters, setFilters] = useState({
-    status: "",
-    gender: "",
-  });
-
-  // Search
+  const [filters, setFilters] = useState({ status: "", gender: "" });
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchData(page, filters, search);
-  }, [page, filters, search]);
+    // Set up debounce timeout
+    const handler = setTimeout(() => {
+      fetchData(page, filters, search);
+    }, 500); // 500ms delay — adjust as needed
 
+    // Cleanup function — runs before next effect or unmount
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [page, filters, search]);
   const fetchData = async (
     pageNum: number,
     filters: any,
@@ -56,7 +57,6 @@ export default function EnquiriesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId: "223705000182342069",
           page: pageNum,
           filters,
           search: searchValue,
@@ -80,7 +80,7 @@ export default function EnquiriesPage() {
   const columns = [
     "Enquiry Status",
     "Created Time",
-    "Programs Interested In.",
+    "Programs Interested In",
     "Full Name",
     "Email",
     "Phone",
@@ -93,15 +93,15 @@ export default function EnquiriesPage() {
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Enquiries</h1>
+    <div className="p-4 md:p-6">
+      <h1 className="text-2xl font-semibold mb-4 text-gray-800">Enquiries</h1>
 
-      {/* Filter + Search Bar */}
+      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
         <input
           type="text"
           placeholder="Search name, email, phone..."
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full sm:w-72"
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full sm:w-72 focus:ring-2 focus:ring-blue-500 outline-none"
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -110,7 +110,7 @@ export default function EnquiriesPage() {
         />
 
         <select
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           value={filters.status}
           onChange={(e) => handleFilterChange("status", e.target.value)}
         >
@@ -126,7 +126,7 @@ export default function EnquiriesPage() {
         </select>
 
         <select
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           value={filters.gender}
           onChange={(e) => handleFilterChange("gender", e.target.value)}
         >
@@ -137,15 +137,15 @@ export default function EnquiriesPage() {
         </select>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto border rounded-lg shadow-sm">
+      {/* TABLE - desktop */}
+      <div className="hidden md:block overflow-x-auto border rounded-lg shadow-sm">
         <table className="min-w-full bg-white">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col}
-                  className="px-4 py-2 text-left text-sm font-semibold text-gray-600 border-b"
+                  className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b"
                 >
                   {col}
                 </th>
@@ -175,7 +175,9 @@ export default function EnquiriesPage() {
               data.map((row, idx) => (
                 <tr
                   key={idx}
-                  className="hover:bg-gray-50 border-b transition-colors"
+                  className={`border-b hover:bg-gray-50 ${
+                    idx % 2 === 0 ? "bg-gray-50/50" : "bg-white"
+                  }`}
                 >
                   <td className="px-4 py-2 text-sm">
                     {row.Lead_Status || "-"}
@@ -214,10 +216,61 @@ export default function EnquiriesPage() {
         </table>
       </div>
 
+      {/* CARD VIEW - mobile */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <p className="text-center py-4 text-gray-500">Loading...</p>
+        ) : data.length === 0 ? (
+          <p className="text-center py-4 text-gray-500">No enquiries found</p>
+        ) : (
+          data.map((row, idx) => (
+            <div
+              key={idx}
+              className="bg-white p-4 rounded-lg shadow-sm border space-y-2"
+            >
+              <div className="flex justify-between">
+                <span className="font-semibold text-gray-800">
+                  {row.Full_Name || "Unnamed"}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {row.Created_Time
+                    ? new Date(row.Created_Time).toLocaleDateString()
+                    : ""}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm text-gray-700">
+                <p>
+                  <span className="font-medium">Status:</span>{" "}
+                  {row.Lead_Status || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Gender:</span>{" "}
+                  {row.Gender || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Program:</span>{" "}
+                  {row.Programs_Interested_In1 || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Year:</span>{" "}
+                  {row.School_Year_Level || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span> {row.Email || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Phone:</span> {row.Phone || "-"}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Pagination */}
       {pagination && (
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-600">
+        <div className="flex justify-between items-center mt-6 text-sm">
+          <p className="text-gray-600">
             Page {pagination.currentPage} of {pagination.totalPages}
           </p>
 
@@ -225,9 +278,9 @@ export default function EnquiriesPage() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              className={`px-3 py-1 text-sm border rounded-md ${
+              className={`px-3 py-1 border rounded-md ${
                 page === 1
-                  ? "text-gray-400 border-gray-200"
+                  ? "text-gray-400 border-gray-200 cursor-not-allowed"
                   : "text-gray-700 border-gray-300 hover:bg-gray-100"
               }`}
             >
@@ -243,9 +296,9 @@ export default function EnquiriesPage() {
                     : p
                 )
               }
-              className={`px-3 py-1 text-sm border rounded-md ${
+              className={`px-3 py-1 border rounded-md ${
                 !pagination.moreRecords
-                  ? "text-gray-400 border-gray-200"
+                  ? "text-gray-400 border-gray-200 cursor-not-allowed"
                   : "text-gray-700 border-gray-300 hover:bg-gray-100"
               }`}
             >

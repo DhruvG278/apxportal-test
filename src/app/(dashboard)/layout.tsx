@@ -11,6 +11,8 @@ import {
   Users,
   FileText,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface SchoolInfo {
@@ -43,6 +45,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [school, setSchool] = useState<SchoolInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchSchool = async () => {
@@ -63,7 +66,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       await fetch("/api/zoho/logout", { method: "GET" });
-      router.push("/login"); // redirect to login page after logout
+      router.push("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -75,37 +78,44 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="min-h-screen flex-col">
-      {/* 🧭 Header */}
-      <header className="bg-white shadow-sm border-b px-6 py-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <School className="w-6 h-6 text-blue-500" />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
+        <div className="px-4 py-3 flex justify-between items-center md:px-8">
+          <div className="flex items-center gap-2">
+            <School className="w-6 h-6 text-blue-600" />
+            <h1 className="font-semibold text-lg md:text-xl truncate">
               {loading
                 ? "Loading School..."
                 : school?.Name || "School Dashboard"}
             </h1>
-            {school?.Sector && (
-              <p className="text-sm text-gray-500 mt-1">
-                {school.Sector} School • {school.City}, {school.Country}
-              </p>
-            )}
           </div>
 
-          {/* 📋 Key Info + Logout */}
-          <div className="flex flex-wrap gap-4 items-center text-sm">
+          {/* MOBILE MENU TOGGLE */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+          >
+            {menuOpen ? (
+              <X className="w-5 h-5 text-gray-700" />
+            ) : (
+              <Menu className="w-5 h-5 text-gray-700" />
+            )}
+          </button>
+
+          {/* DESKTOP CONTACTS + LOGOUT */}
+          <div className="hidden md:flex items-center gap-4 text-sm">
             {school?.Email && (
-              <div className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-gray-700">
                 <Mail className="w-4 h-4 text-blue-500" />
                 {school.Email}
-              </div>
+              </span>
             )}
             {school?.Phone && (
-              <div className="flex items-center gap-2">
+              <span className="flex items-center gap-2 text-gray-700">
                 <Phone className="w-4 h-4 text-blue-500" />
                 {school.Phone}
-              </div>
+              </span>
             )}
             {school?.Website && (
               <a
@@ -117,11 +127,9 @@ export default function DashboardLayout({
                 Website
               </a>
             )}
-
-            {/* 🔒 Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 px-3 py-1 border rounded text-red-600 hover:bg-red-50 transition"
+              className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-red-600 hover:bg-red-50 transition"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -129,36 +137,71 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* 🏫 Extra Info */}
-        {school && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 rounded-lg">
-              <p className="text-gray-500">Referent</p>
-              <p className="font-medium">
-                {school.School_Referent_name || "N/A"}
-              </p>
-              <p className="text-xs text-gray-400">
-                {school.School_Referent_email || ""}
-              </p>
-            </div>
-            <div className="p-3 rounded-lg">
-              <p className="text-gray-500">Programs Offered</p>
-              <p className="font-medium">
-                {school.Programs_Offered?.join(", ") || "N/A"}
-              </p>
-            </div>
-            <div className="p-3 rounded-lg">
-              <p className="text-gray-500">Boarding</p>
-              <p className="font-medium">
-                {school.Have_A_Boarding || "Not Mentioned"}
-              </p>
-            </div>
+        {/* MOBILE DROPDOWN MENU */}
+        {menuOpen && (
+          <div className="md:hidden border-t bg-white px-4 pb-4 space-y-3 animate-slideDown">
+            {school?.Email && (
+              <div className="flex items-center gap-2 text-gray-700 text-sm">
+                <Mail className="w-4 h-4 text-blue-500" />
+                {school.Email}
+              </div>
+            )}
+            {school?.Phone && (
+              <div className="flex items-center gap-2 text-gray-700 text-sm">
+                <Phone className="w-4 h-4 text-blue-500" />
+                {school.Phone}
+              </div>
+            )}
+            {school?.Website && (
+              <a
+                href={school.Website}
+                target="_blank"
+                className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
+              >
+                <MapPin className="w-4 h-4" />
+                Website
+              </a>
+            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-1.5 border rounded-lg text-red-600 hover:bg-red-50 text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </div>
         )}
       </header>
 
-      {/* 🧭 Tabs */}
-      <nav className="flex border-b px-4">
+      {/* EXTRA SCHOOL INFO */}
+      {school && (
+        <section className="px-4 md:px-8 py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <p className="text-gray-500 text-sm">Referent</p>
+            <p className="font-medium">
+              {school.School_Referent_name || "N/A"}
+            </p>
+            <p className="text-xs text-gray-400">
+              {school.School_Referent_email || ""}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <p className="text-gray-500 text-sm">Programs Offered</p>
+            <p className="font-medium">
+              {school.Programs_Offered?.join(", ") || "N/A"}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <p className="text-gray-500 text-sm">Boarding</p>
+            <p className="font-medium">
+              {school.Have_A_Boarding || "Not Mentioned"}
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* NAVIGATION TABS */}
+      <nav className="flex flex-wrap border-b bg-white">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
           const Icon = tab.icon;
@@ -166,10 +209,10 @@ export default function DashboardLayout({
             <Link
               key={tab.name}
               href={tab.href}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium flex-1 transition-all ${
                 isActive
-                  ? "border-secondary text-white bg-primary "
-                  : "border-transparent text-gray-600 hover:text-primary hover:border-secondary hover:bg-secondary/10"
+                  ? "bg-blue-600 text-white border-b-2 border-blue-700"
+                  : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -179,7 +222,8 @@ export default function DashboardLayout({
         })}
       </nav>
 
-      <main className="flex-1 p-6">{children}</main>
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-4 md:p-8">{children}</main>
     </div>
   );
 }
