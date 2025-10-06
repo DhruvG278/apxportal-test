@@ -17,7 +17,7 @@ export const POST = async (req: NextRequest) => {
 
     // ---- Build Criteria ----
     const criteriaParts: string[] = [`(School:equals:${schoolId})`];
-
+    criteriaParts.push(`(Year_Of_Program:greater_equal:2025)`);
     if (search) criteriaParts.push(`(Full_Name:starts_with:${search})`);
     if (filters.program)
       criteriaParts.push(`(Programs_Interested_In:equals:${filters.program})`);
