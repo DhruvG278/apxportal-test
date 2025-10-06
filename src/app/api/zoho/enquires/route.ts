@@ -17,7 +17,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     let criteriaParts: string[] = [`(School:equals:${schoolId})`];
-
+    criteriaParts.push(`(Program_Year:greater_equal:2025)`);
     // Add optional filters
     if (filters.status) {
       criteriaParts.push(`(Lead_Status:equals:${filters.status})`);

@@ -17,14 +17,14 @@ export const POST = async (req: NextRequest) => {
 
     // ---- Build Criteria ----
     const criteriaParts: string[] = [`(School:equals:${schoolId})`];
-    criteriaParts.push(`(Year_of_Program:greater_equal:2025)`);
-    // if (search) criteriaParts.push(`(Full_Name:starts_with:${search})`);
-    // if (filters.program)
-    //   criteriaParts.push(`(Programs_Interested_In:equals:${filters.program})`);
-    // if (filters.status)
-    //   criteriaParts.push(`(Contact_Status:equals:${filters.status})`);
-    // if (filters.matchingStatus)
-    //   criteriaParts.push(`(Matching_Status:equals:${filters.matchingStatus})`);
+
+    if (search) criteriaParts.push(`(Full_Name:starts_with:${search})`);
+    if (filters.program)
+      criteriaParts.push(`(Programs_Interested_In:equals:${filters.program})`);
+    if (filters.status)
+      criteriaParts.push(`(Contact_Status:equals:${filters.status})`);
+    if (filters.matchingStatus)
+      criteriaParts.push(`(Matching_Status:equals:${filters.matchingStatus})`);
 
     // // URL-encode the criteria
     const criteria = `criteria=${encodeURIComponent(
