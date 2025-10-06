@@ -17,7 +17,6 @@ export const POST = async (req: NextRequest) => {
     }
 
     let criteriaParts: string[] = [`(School:equals:${schoolId})`];
-    criteriaParts.push(`(Program_Year:greater_equal:2025)`);
     // Add optional filters
     if (filters.status) {
       criteriaParts.push(`(Lead_Status:equals:${filters.status})`);
@@ -37,7 +36,7 @@ export const POST = async (req: NextRequest) => {
 
     // Combine with AND
     const criteria = `criteria=${criteriaParts.join("and")}`;
-
+    console.log("criteria", criteria);
     // ---- Fetch from Zoho ----
     const { data } = await zohoApiRequest(
       "GET",
@@ -58,8 +57,14 @@ export const POST = async (req: NextRequest) => {
         count: data?.info?.count ?? data.data?.length,
       },
     });
-  } catch (err) {
-    console.error("Error fetching Leads:", err);
-    return new NextResponse("Error in fetching Leads", { status: 500 });
+  } catch (err: any) {
+    console.error("Error fetching Leads:", err?.response?.data || err);
+    return new NextResponse(
+      JSON.stringify({
+        message: "Error fetching Applications",
+        error: err,
+      }),
+      { status: 500 }
+    );
   }
 };
